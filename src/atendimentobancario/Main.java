@@ -7,7 +7,7 @@ import java.util.Random;
 
 public class Main {
 
-    private static Fila fila = fila = new Fila();
+    private static Fila fila = new Fila();
     private static Guiche[] guiches = {new Guiche(1), new Guiche(2), new Guiche(3)};
     private static int numDepositos = 0;
     private static int numSaques = 0;
@@ -19,12 +19,10 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
 
         var temGuicheOcupado = false;
-        boolean filaDesocupada = true;
         
         //Caso o expediente não tenha acabado ou tenha alguém sendo atendido ou tenha alguém na fila, todo o fluxo continuará rodando, pois não pode-se fechar a empresa com clientes dentro.
-        while (expediente >= 0  || temGuicheOcupado || !filaDesocupada) {
-            System.out.println("Tempo de expediente: " + gerarHorarioPorSegs(expediente--));
-            System.out.println("Clientes na fila: " + fila.length);
+        while (expediente >= 0  || temGuicheOcupado || !fila.isEmpty()) {
+            imprimirInfos();
             tempoRestanteGuiches = 0;
             
             Guiche guicheVazio = null;
@@ -40,17 +38,14 @@ public class Main {
             }
 
             //A cada segundo, ocorre um sorteio de 0 a 29 e se cair no zero, um cliente entra na fila.
-            if (expediente >= 0) {
-                if (sorteioCliente()) {
+            if (expediente >= 0 && sorteioCliente()) {
                     Cliente cliente = new Cliente(expediente);
                     fila.enqueue(cliente);
                     System.out.println("Chegou um novo cliente.");
-                }
             }
             
             //Se a tiver alguém na fila e um guichê vazio, o cliente vai até o guichê.
-            filaDesocupada = fila.isEmpty();
-            if (guicheVazio != null && !filaDesocupada) {
+            if (guicheVazio != null && !fila.isEmpty()) {
                 adicionarClienteGuiche(guicheVazio);
             }
 
@@ -67,9 +62,12 @@ public class Main {
         //Dados do dia obtidos:
         var mediaTempoClientes = tempoTotalCliente / (numSaques + numDepositos + numPagamentos);
         var clientesAtendidos = numSaques + numDepositos + numPagamentos;
+        System.out.println("------------------------------------------------------------------------");
         System.out.println("O tempo médio de espera dos clientes foi de: " + mediaTempoClientes + " segundos");
         System.out.println(clientesAtendidos + " clientes foram atendidos.");
-        System.out.println(numSaques + " clientes fizeram saque, " + numDepositos + ", clientes fizeram depositos e " + numPagamentos + " clientes fizeram pagamentos");
+        System.out.println(numSaques + " clientes fizeram saque.");
+        System.out.println(numDepositos + " clientes fizeram depositos.");
+        System.out.println(numPagamentos + " clientes fizeram pagamentos");
         if (expediente < 0) {
             System.out.println("Tempo extra de expediente: " + expediente * -1 + " segundos");
         } else {
@@ -78,6 +76,11 @@ public class Main {
     }
     public static boolean sorteioCliente() {
         Random random = new Random(); return random.nextInt(30) == 0;
+    }
+    
+    public static void imprimirInfos(){
+            System.out.println("Tempo de expediente: " + gerarHorarioPorSegs(expediente--));
+            System.out.println("Clientes na fila: " + fila.length);
     }
     public static void adicionarClienteGuiche(Guiche guiche) {
         var numeroOperacao = gerarNumeroOperacao();
@@ -88,8 +91,6 @@ public class Main {
         System.out.println("O cliente chegou as " + gerarHorarioPorSegs(cliente.getId()) + "e foi atendido no gichê " + guiche.getNumero());
     }
 
-
-    
     public static String gerarHorarioPorSegs(int segundos) {
         int horas = segundos / 3600;
         int minutos = (segundos % 3600) / 60;
